@@ -25,20 +25,26 @@ Input dataset:
 
 Serie of ERA5-Land total (stratiform+convective) precipitation (tp)
 
-     - daily accumulation over 1981 to 2010 time window,
-     
-     - the time step d+1 at 00h contains the accumulated tp over
-       the previous 24 hours (day d),
+- daily accumulation over 1981 to 2010 time window,
+  
+- the time step d+1 at 00h contains the accumulated tp over the previous 24 hours (day d),
        
-     - defined on a regular latitude/longitude grid of 0.1°x0.1°,
+- defined on a regular latitude/longitude grid of 0.1°x0.1°,
      
-     - downloaded via the cdsapirequest, in NetCDF format.
+- downloaded via the cdsapirequest, in NetCDF format.
 
- Output files:
+Output files:
+
+ meanOnset_1981-2010.png
+ 
+ timeEvolution_1981-2010.png
+ 
+ minOnset_1981-2010.png
  
  10pOnset_1981-2010.png
+ 
  90pOnset_1981-2010.png
+ 
  maxOnset_1981-2010.png
- meanOnset_1981-2010.png
- minOnset_1981-2010.png
- timeEvolution_1981-2010.png
+ 
+ 
