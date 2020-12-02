@@ -1,10 +1,12 @@
 
 """
   Program allows to: 
-    1. compute Anamalouse Accumulation indice (AA) using Liebmann's method
-    2. identify Onset dates of the wet season
-    3. draw a graph of Onset dates over years, for given locations
-    4. draw the maps of a number of statistics of Onset dates
+    1. select days within a water year
+    2. compute Anamalouse Accumulation indice (AA) using Liebmann's method
+    3. identify Onset dates of the wet season for year/(year+1) as next day
+       of the day for which maximum of AA occurs 
+    4. draw a graph of Onset dates over years, for given locations
+    5. draw the maps of a number of statistics of Onset dates
  
   Input dataset: 
   Serie of ERA5-Land total (stratiform+convective) precipitation tp
@@ -27,8 +29,9 @@
 
   Note  : The code is created for purposes of the MFI test use case.
 
-  Author: Milka Radojevio
-  Date  : November 2020
+  Author : Milka Radojevio
+  Date   : November 2020
+  Version: 1.1 (Dec 2020) 
 
 """
 
@@ -42,15 +45,19 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 
 # Import the local custom functions
-from ilfunc import get_ncvar,calc_ind,get_range,nearest_idxs,draw_plot,plot_settings,draw_map
+list_func = ['get_ncvar','calc_ind,get_range','nearest_idxs',
+             'draw_plot','plot_settings','draw_map']
+from ilfunc import *
 
 #==================
 # INPUT PARAMETERS
 #==================
 # Use case: ANGOLA
-#in_fileName = 'tp_era5-land_reg_hour00_1981-2010.nc'
-in_fileName = 'tp_era5-land_reg_hour00_1981-2011-01-01.nc'
+in_fileName = 'tp_era5-land_reg_hour00_1981-2011.nc'
 print('Input dataset:', in_fileName)
+
+# Water year in Southern Hemisphere, Y/07/01 to Y+1/06/30
+hydroYearStart = 7
 
 # Locations for which we plot temporal distribution of AA
 dict_Location = dict()
@@ -90,7 +97,8 @@ dtime = netCDF4.num2date (time[:]-24, units=units, calendar=calendar)
 
 startYear = min(dtime).year
 endYear   = max(dtime).year
-listYears = list( range(startYear,endYear+1) )
+#listYears = list( range(startYear,endYear+1) )
+listYears = list( range(startYear,endYear) )
 statPeriod = str(startYear)+ '-' +str(endYear)
 
 print('Start date:', min(dtime))
@@ -103,31 +111,31 @@ print('End date  :', max(dtime))
 
 # Initialize dictionaries
 #dict_APcp  = dict()     # Annual accumulation of precipitation
-#dict_AA    = dict()	# Anomalous Accumulation in mm per year
+dict_AA    = dict()	# Anomalous Accumulation in mm per year
 dict_Onset = dict()	# Onset date
 
 # Split calculation of AA and Onset dates into individual years
 # and save 3D data array to corresponding dictionary:
 for Year in listYears:
 
-   # Extract prcp_daily within a given year
-   time_idxs = [ it for it in range(len(dtime)) if dtime[it].year == Year]
-   pdYear = prcp_daily[time_idxs,:,:]
+   # Extract prcp_daily within water year
+   hydroYear = [ it for it in range(len(dtime)) if
+             ( (dtime[it].year == Year) & ( dtime[it].month >= hydroYearStart) ) |
+             ( (dtime[it].year == Year+1) & ( dtime[it].month < hydroYearStart) ) ]
+
+   pdYear = prcp_daily[hydroYear,:,:]
 
    # Compute annual average of precipitation and add 3D array to dict_PA
    #dict_APcp[Year] = numpy.sum(pdYear, axis=0)
 
    # Compute AA indice for each day of a yer and add 3D array to dict_AA
    AAYear = calc_ind( pdYear )
-   #dict_AA[Year] = AAYear
-
-   # Identify the onset date of rainy season as
-   # time index of minimum of AA along the time axis
-   onsetYear = numpy.argmin(AAYear, axis=0)+1
+   dict_AA[Year] = AAYear
+  
+   # Identify the Onset date of rainy season Y/Y+1
+   onsetYear = numpy.argmax( AAYear, axis=0 ) + 1
    dict_Onset[Year] = numpy.array( [*onsetYear] )
-
-   del pdYear, AAYear, onsetYear
-
+   del hydroYear, pdYear, AAYear, onsetYear
 
 # Convert a dictionary of Onset dates to ndarray
 Onset = numpy.array( list(dict_Onset.values()) )

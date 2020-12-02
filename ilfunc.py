@@ -54,12 +54,12 @@ def calc_ind(Rda):
       Returns a 3D array of Anomalous Accumulation (AA)
       for a given year, expressed in mm
    """
-   if Rda.shape[0] >= 364 : 
+   try:
       Rada = numpy.mean(Rda, 0)		# Annual daily average
       AA = numpy.cumsum(Rda - Rada, axis=0)
       return AA
-   else:
-      print('ERROR: Number of days in year is:',Rda.shape[0])
+   except:
+      print('ERROR while computing AA.')
       raise KeyError
 
 
@@ -109,7 +109,7 @@ def plot_settings(ax1, evolTitle, listYears, dataQ):
    rangeQ = get_range(dataQ, 2) # 2-day interval
    plt.yticks( rangeQ )
    #ax1.set_ylim([min(rangeQ),max(rangeQ)])
-   ax1.set_ylim([250,300])  # custom limits for dict_Location
+   ax1.set_ylim([254,320])  # custom limits for dict_Location
    ax1.yaxis.set_major_formatter( mdates.DateFormatter('%b-%d') )
 
    plt.tick_params(axis='both', labelsize=8)
@@ -144,10 +144,16 @@ def draw_map(lons, lats, dataQ, nameQ):
       minQ = numpy.min(dataQ)
       maxQ = numpy.max(dataQ)
    else:
+      intQ = 7
+      cmapName = 'hsv'
+      minQ = 364/2
+      maxQ = 364
+      """
       intQ = 14
       cmapName = 'hsv' #'jet_r'
       minQ = 1
       maxQ = 364
+      """
 
    boundsQ = numpy.arange(minQ, maxQ+intQ, intQ)
    normQ = mpl.colors.BoundaryNorm(boundsQ, len(boundsQ)-1)
